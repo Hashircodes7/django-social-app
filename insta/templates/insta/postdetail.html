@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Post Detail</h2>
+
+<p><b>{{ object.user.username }}</b>
+{% if object.user.profile.avatar %}
+  <img src="{{ object.user.profile.avatar.url }}" alt="Avatar" width="30">
+{% endif %}
+: {{ object.text }}</p>
+
+{% if object.image %}
+  <img src="{{ object.image.url }}" alt="Post Image" width="300">
+{% endif %}
+
+<p>Likes: {{ post.post_likes.count }} | Comments: {{ post.comments.count }}</p>
+
+<p>Posted {{ object.created_at|timesince }} ago</p>
+
+<hr>
+
+<h3>Comments</h3>
+
+{% for comment in comments %}
+  <p>
+    {{ comment.user.username }} : {{ comment.text }}
+    <br>Posted {{ comment.created_at|timesince }} ago
+  </p>
+
+  <form method="post" action="{% url 'likecomment' comment.id %}">
+    {% csrf_token %}
+    <button type="submit">Like Comment</button>
+  </form>
+
+{% empty %}
+  <p>No comments yet.</p>
+{% endfor %}
+
+<hr>
+
+{% if user.is_authenticated %}
+<h3>Add Comment</h3>
+<form method="post" action="{% url 'createcomment' object.id %}">
+  {% csrf_token %}
+  <textarea name="text"></textarea><br>
+  <button type="submit">Comment</button>
+</form>
+{% endif %}
+
+<a href="{% url 'index' %}">Back</a>
+
+</body>
+</html>

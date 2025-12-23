@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Home Feed</h2>
+
+{% if user.is_authenticated %}
+  <p>Logged in as {{ user.username }}</p>
+  {% if user.profile.avatar %}
+    <img src="{{ user.profile.avatar.url }}" alt="Avatar" width="50">
+  {% endif %}
+  <p>{{ user.profile.bio }}</p>
+  <a href="{% url 'logout' %}">Logout</a>
+  <br><br>
+  <a href="{% url 'createpost' %}">Create Post</a>
+{% else %}
+  <a href="{% url 'login' %}">Login</a> |
+  <a href="{% url 'register' %}">Register</a>
+{% endif %}
+
+<hr>
+
+{% for post in posts %}
+  <p>
+    <b>{{ post.user.username }}</b>
+    {% if post.user.profile.avatar %}
+      <img src="{{ post.user.profile.avatar.url }}" alt="Avatar" width="30">
+    {% endif %}
+    : {{ post.text }}
+  </p>
+
+  {% if post.image %}
+    <img src="{{ post.image.url }}" alt="Post Image" width="200">
+  {% endif %}
+
+  <!-- Followers/Following count -->
+  <p>Followers: {{ post.user.follower.count }} | Following: {{ post.user.following.count }}</p>
+
+  <p>Likes: {{ post.post_likes.count }} | Comments: {{ post.comments.count }}</p>
+  <p>Posted {{ post.created_at|timesince }} ago</p>
+
+  <form method="post" action="{% url 'likepost' post.id %}">
+    {% csrf_token %}
+    <button type="submit">Like</button>
+  </form>
+
+  <a href="{% url 'postdetail' post.id %}">View Post</a>
+
+  {% if post.user == user %}
+    <a href="{% url 'updatepost' post.id %}">Edit</a>
+    <a href="{% url 'deletepost' post.id %}">Delete</a>
+  {% endif %}
+
+  {% if post.user != user %}
+    <!-- Follow/Unfollow button -->
+    <form method="post" action="{% url 'togglefollow' post.user.id %}">
+      {% csrf_token %}
+      {% if user in post.user.follower.all %}
+        <button type="submit">Unfollow</button>
+      {% else %}
+        <button type="submit">Follow</button>
+      {% endif %}
+    </form>
+  {% endif %}
+
+  <hr>
+{% empty %}
+  <p>No posts yet.</p>
+{% endfor %}
+
+</body>
+</html>

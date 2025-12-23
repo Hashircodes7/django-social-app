@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Post Form</h2>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <p>Optional Image: <input type="file" name="image"></p>
+  <button type="submit">Save</button>
+</form>
+
+<a href="{% url 'index' %}">Back</a>
+
+</body>
+</html>
