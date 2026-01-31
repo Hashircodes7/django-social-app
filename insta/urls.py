@@ -3,7 +3,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
-
 from . import views
 from .views import (
     createpostview,
@@ -18,6 +17,7 @@ from .views import (
 
 urlpatterns = [
     path('index/',views.homeview,name='index'),
+    path('explore/',views.exploreview,name='explore'),
     path('register/',views.useregisterview,name='register'),
     path('login/',views.userloginview,name='login'),
     path('logout/',views.userlogoutview,name='logout'),

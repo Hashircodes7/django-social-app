@@ -1,0 +1,79 @@
+
+
+{% block content %}
+<h1>Explore Posts</h1>
+
+{% if posts %}
+    <div class="posts-container">
+        {% for post in posts %}
+            <div class="post-card">
+                <p><strong>{{ post.user.username }}</strong></p>
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="Post Image" style="max-width: 300px;">
+                {% endif %}
+                <p>{{ post.text }}</p>
+                <p><small>{{ post.created_at }}</small></p>
+
+                <!-- Like Post -->
+                <form method="post" action="{% url 'likepost' post.id %}">
+                    {% csrf_token %}
+                    {% if post.liked_by_user %}
+                        <button type="submit">Unlike</button>
+                    {% else %}
+                        <button type="submit">Like</button>
+                    {% endif %}
+                    ({{ post.post_likes.count }})
+                </form>
+
+                <!-- Comment -->
+                <div class="comments">
+                    {% for comment in post.comments.all %}
+                        <p><strong>{{ comment.user.username }}</strong>: {{ comment.text }}</p>
+
+                        <!-- Like Comment -->
+                        <form method="post" action="{% url 'likecomment' comment.id %}">
+                            {% csrf_token %}
+                            {% if comment.liked_by_user %}
+                                <button type="submit">Unlike</button>
+                            {% else %}
+                                <button type="submit">Like</button>
+                            {% endif %}
+                            ({{ comment.comment_likes.count }})
+                        </form>
+                    {% endfor %}
+                </div>
+
+                <!-- Follow / Unfollow Post Owner -->
+                {% if post.user != request.user %}
+                    <form method="post" action="{% url 'togglefollow' post.user.id %}">
+                        {% csrf_token %}
+                        {% if post.followed_by_user %}
+                            <button type="submit">Unfollow</button>
+                        {% else %}
+                            <button type="submit">Follow</button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+            <hr>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination Links -->
+    <div class="pagination">
+        {% if posts.has_previous %}
+            <a href="?page={{ posts.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+
+        {% if posts.has_next %}
+            <a href="?page={{ posts.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+
+{% else %}
+    <p>No posts available.</p>
+{% endif %}
+
+{% endblock %}

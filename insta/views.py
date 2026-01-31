@@ -8,13 +8,36 @@ from django.views import View
 from django.views.generic import CreateView,UpdateView,DeleteView,DetailView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Q
 # Create your views here.
+@login_required
 def homeview(request):
+   following=Follower.objects.filter(follower_user=request.user).values_list('following_user',flat=True)
+   posts=Post.objects.filter(Q(user__in=following) | Q(user=request.user)).order_by('-created_at')
        
-   posts = Post.objects.all()
-   return render(request,'insta/index.html',{'posts':posts})
+   paginator=Paginator(posts,10)
+   page=request.GET.get('page')
+   posts_page=paginator.get_page(page)
+
+   return render(request,'insta/index.html',{'posts':posts_page})
+
+@login_required
+def exploreview(request):
+    posts = Post.objects.select_related('user').all().order_by('-created_at')
+
+    paginator = Paginator(posts, 10)
+    page = request.GET.get('page')
+    posts_page = paginator.get_page(page)
+
+    # Precompute likes for posts and comments, and follow status
+    
+    return render(request, 'insta/explore.html', {'posts': posts_page})
+
 
 @receiver(post_save, sender=customusermodel)
 def create_profile(sender, instance, created, **kwargs):
@@ -126,7 +149,7 @@ class togglecommentlike(LoginRequiredMixin,View):
       else:
          Like.objects.create(user=request.user,comment=comment)
 
-      return redirect('index')
+      return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
    
 class togglepostlike(LoginRequiredMixin,View):
    def post(self,request,postid):
@@ -137,7 +160,7 @@ class togglepostlike(LoginRequiredMixin,View):
       else:
          Like.objects.create(user=request.user,post=post)
 
-      return redirect('index')
+      return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
    
 class togglefollowview(LoginRequiredMixin,View):
    def post(self,request,user_id):
@@ -149,4 +172,4 @@ class togglefollowview(LoginRequiredMixin,View):
       else:
          Follower.objects.create(follower_user=request.user,following_user=user)
 
-      return redirect('index')
+      return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
